@@ -1,0 +1,19 @@
+{
+  "name": "@profullstack/timer",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A time tracker for the terminal and for agents — start a clock against a project, stop it, and get billable hours back as text or JSON.",
+  "keywords": ["timer", "time-tracking", "timesheet", "billable", "hours", "cli", "agent", "freelance"],
+  "repository": { "type": "git", "url": "git+https://github.com/profullstack/timer.git" },
+  "homepage": "https://github.com/profullstack/timer#readme",
+  "bugs": { "url": "https://github.com/profullstack/timer/issues" },
+  "license": "MIT",
+  "author": "Profullstack, LLC",
+  "bin": { "timer": "bin/timer.mjs" },
+  "files": ["bin", "src", "README.md", "AGENTS.md", "LICENSE"],
+  "engines": { "node": ">=20.11" },
+  "scripts": {
+    "test": "node --test",
+    "start": "node bin/timer.mjs"
+  }
+}
