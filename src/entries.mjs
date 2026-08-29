@@ -24,6 +24,7 @@ export function makeEntry({
   end = null,
   notes = "",
   agent = null,
+  agents = 1,
   rate = null,
   billable = true,
   meta = {},
@@ -38,6 +39,11 @@ export function makeEntry({
     end,
     notes: String(notes || ""),
     agent: agent ? String(agent) : null,
+    // How many engines were working during this entry. An hour of agentic work
+    // is an hour times however many agents ran in it, and a rate priced per
+    // agent needs that number per entry - averaging it across a day bills a
+    // two-agent afternoon at the four-agent rate.
+    agents: Math.max(1, Math.round(Number(agents) || 1)),
     rate: rate == null ? null : Number(rate),
     billable: Boolean(billable),
     meta: meta && typeof meta === "object" ? meta : {},

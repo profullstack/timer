@@ -24,7 +24,7 @@ import {
 } from "./entries.mjs";
 import { formatDuration, hours, parseMoment, resolveWindow, shortStamp } from "./time.mjs";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 
 /** A bad command line — worth a different exit code than a failed operation. */
 export class UsageError extends Error {
@@ -73,6 +73,8 @@ function serialize(entry, now = new Date()) {
     billable: entry.billable,
     rate: entry.rate,
     agent: entry.agent,
+    agents: entry.agents ?? 1,
+    agentHours: hours(secs * (entry.agents ?? 1)),
     notes: entry.notes,
     meta: entry.meta,
   };
@@ -84,6 +86,7 @@ const ENTRY_COLUMNS = [
   { header: "PROJECT", get: (e) => e.project },
   { header: "TASK", get: (e) => e.task || "-" },
   { header: "TIME", get: (e) => formatDuration(e.seconds), align: "right" },
+  { header: "AGENTS", get: (e) => (e.agents > 1 ? e.agents : "") , align: "right" },
   { header: "TAGS", get: (e) => (e.tags.length ? e.tags.join(",") : "-") },
   { header: "", get: (e) => (e.running ? "running" : (e.billable ? "" : "unbillable")) },
 ];
@@ -107,6 +110,26 @@ function sumOf(rows) {
   return { entries: rows.length, seconds: secs, hours: hours(secs), billableSeconds: billable, billableHours: hours(billable) };
 }
 
+/**
+ * How many agents were working, from --agents.
+ *
+ * A number only. moshcode's `--agents auto` reads the count off its own herd
+ * and passes the result here: this package has no herd to ask, and silently
+ * treating "auto" as 1 would under-bill every entry it appeared on.
+ */
+function agentCount(flags) {
+  if (flags.agents == null) return 1;
+  const n = Number(flags.agents);
+  if (!Number.isFinite(n) || n < 1 || !Number.isInteger(n)) {
+    throw new UsageError(
+      `--agents: "${flags.agents}" is not a whole number of agents`
+      + (String(flags.agents).toLowerCase() === "auto"
+        ? " (this package has no herd to count; pass the number)" : ""),
+    );
+  }
+  return n;
+}
+
 function requireProject(positional, flags) {
   const project = flags.project || positional[0];
   if (!project) throw new UsageError("which project? e.g. timer start acme");
@@ -118,11 +141,11 @@ function requireProject(positional, flags) {
 const COMMANDS = [
   {
     name: "start",
-    aliases: ["begin", "in"],
+    aliases: ["begin", "in", "on"],
     args: "<project> [task words…]",
     summary: "start the clock on a project",
     booleans: ["billable", "switch"],
-    values: ["task", "note", "agent", "rate", "at", "project", "meta"],
+    values: ["task", "note", "agent", "agents", "rate", "at", "project", "meta"],
     multi: ["tag"],
     detail: [
       "Everything after the project name is taken as the task, so you can type",
@@ -154,6 +177,7 @@ const COMMANDS = [
           start: at,
           notes: flags.note || "",
           agent: flags.agent || process.env.TIMER_AGENT || null,
+          agents: agentCount(flags),
           rate: flags.rate,
           billable: flags.billable !== false,
           meta,
@@ -175,7 +199,7 @@ const COMMANDS = [
   },
   {
     name: "stop",
-    aliases: ["out"],
+    aliases: ["out", "off"],
     args: "[id]",
     summary: "stop a running clock",
     booleans: ["all"],
@@ -299,7 +323,7 @@ const COMMANDS = [
     args: "<project> [task words…]",
     summary: "record time you did not clock",
     booleans: ["billable"],
-    values: ["from", "to", "duration", "task", "note", "agent", "rate", "project", "meta"],
+    values: ["from", "to", "duration", "task", "note", "agent", "agents", "rate", "project", "meta"],
     multi: ["tag"],
     detail: [
       "Give any two of --from, --to and --duration; with only --duration the entry",
@@ -338,6 +362,7 @@ const COMMANDS = [
           end: bounds.end,
           notes: flags.note || "",
           agent: flags.agent || process.env.TIMER_AGENT || null,
+          agents: agentCount(flags),
           rate: flags.rate,
           billable: flags.billable !== false,
           meta,
@@ -358,7 +383,7 @@ const COMMANDS = [
     args: "<id>",
     summary: "change an entry",
     booleans: ["billable"],
-    values: ["project", "task", "note", "agent", "rate", "from", "to", "duration", "meta"],
+    values: ["project", "task", "note", "agent", "agents", "rate", "from", "to", "duration", "meta"],
     multi: ["tag"],
     detail: ["Only the fields you name change. --tag replaces the whole tag list."],
     run({ positional, flags, file }) {
@@ -372,6 +397,7 @@ const COMMANDS = [
         if (flags.task != null) e.task = flags.task;
         if (flags.note != null) e.notes = flags.note;
         if (flags.agent != null) e.agent = flags.agent || null;
+        if (flags.agents != null) e.agents = agentCount(flags);
         if (flags.rate != null) e.rate = Number(flags.rate);
         if ("billable" in flags) e.billable = Boolean(flags.billable);
         if (flags.tag) e.tags = [...new Set(flags.tag)];
@@ -459,6 +485,7 @@ const COMMANDS = [
           start: at,
           notes: "",
           agent: source.agent,
+          agents: source.agents ?? 1,
           rate: source.rate,
           billable: source.billable,
           meta: source.meta,

@@ -42,6 +42,8 @@ Everything `--json` returns is built from this shape:
   "billable": true,
   "rate": null,
   "agent": "claude-opus-5",
+  "agents": 1,
+  "agentHours": 1.5,
   "notes": "",
   "meta": {}
 }
@@ -58,6 +60,11 @@ ID=$(timer start acme --task "refactor auth" --json | jq -r .started.id)
 # ... do the work ...
 timer stop --id "$ID" --json
 ```
+
+`--agents N` records how many engines were working during the entry, which is
+what an agent-priced rate multiplies by. It takes a whole number: `auto` is
+rejected rather than silently treated as 1, because this package has no herd to
+count and under-billing quietly is worse than an error.
 
 Several clocks may run at once, which is the point: parallel agents each track
 their own work and do not stop each other. Use `--switch` only if you mean to

@@ -1,6 +1,6 @@
 {
   "name": "@profullstack/timer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "A time tracker for the terminal and for agents — start a clock against a project, stop it, and get billable hours back as text or JSON.",
   "keywords": ["timer", "time-tracking", "timesheet", "billable", "hours", "cli", "agent", "freelance"],

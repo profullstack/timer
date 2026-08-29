@@ -36,7 +36,7 @@ you start a clock.
 
 | Command | What it does |
 | --- | --- |
-| `start <project> [task…]` | Start a clock. `--at 09:15`, `--at -20m`, `--tag`, `--note`, `--rate`, `--switch` |
+| `start <project> [task…]` | Start a clock. `--at 09:15`, `--at -20m`, `--tag`, `--note`, `--rate`, `--agents N`, `--switch` |
 | `stop [id]` | Stop the newest clock, an id, `--project <p>`, or `--all` |
 | `status` | Running clocks and today's total |
 | `log [project]` | List entries in a window |
@@ -64,6 +64,23 @@ full ISO instant. A bare date means local midnight, not UTC midnight.
 A window compares against the entry's **start**, and `--until` is exclusive. An
 entry that runs past midnight therefore belongs to the day it began on — which
 is what keeps a total from being counted twice.
+
+### Counting agents
+
+An hour of agentic work is an hour times however many engines ran in it, so an
+entry carries an agent count:
+
+```sh
+timer start acme refactor auth --agents 4
+timer add acme code review --duration 45m --agents 2
+```
+
+`@profullstack/billing` multiplies by it when the rate says to
+(`$100/hour/agent/upto:4`), and ignores it when the rate is flat. It defaults to
+1, so you can ignore the whole idea until you need it.
+
+`start` is also spelled `on` and `stop` is also spelled `off`, so muscle memory
+from other timers works.
 
 ### Billable and not
 
@@ -97,7 +114,9 @@ timer log --today --json
 ```
 
 `--meta '{"pr":42}'` hangs your own identifiers off an entry, and they survive
-round-trip unchanged.
+round-trip unchanged. `--agents N` records how many engines were working, which
+is what an agent-priced rate multiplies by; it takes a number, not `auto`, since
+this package has no herd to count.
 
 There is more detail, including the entry schema, in [AGENTS.md](AGENTS.md).
 
