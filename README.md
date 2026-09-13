@@ -76,7 +76,7 @@ timer add acme code review --duration 45m --agents 2
 ```
 
 `@profullstack/billing` multiplies by it when the rate says to
-(`$100/hour/agent/upto:4`), and ignores it when the rate is flat. It defaults to
+(`$400/hour/agent/upto:4`), and ignores it when the rate is flat. It defaults to
 1, so you can ignore the whole idea until you need it.
 
 `start` is also spelled `on` and `stop` is also spelled `off`, so muscle memory
