@@ -9,10 +9,13 @@ clock its own work the same way you do — and
 hours into invoices.
 
 ```sh
-npm install -g @profullstack/timer
+curl -fsSL https://raw.githubusercontent.com/profullstack/timer/main/install.sh | sh
 ```
 
-Node 20.11 or newer. No runtime dependencies.
+That installs the `timer` command into `~/.local` (no root). It uses your Node 20.11+ if you have
+one, otherwise it fetches an official Node build (checksum verified) into `~/.local/share/timer`.
+Re-run it to upgrade; remove it with `sh ~/.local/share/timer/uninstall.sh`. Or with npm:
+`npm install -g @profullstack/timer`. No runtime dependencies.
 
 ## Use it
 
